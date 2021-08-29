@@ -19,6 +19,14 @@ from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
+from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email.mime.text import MIMEText
+from email.mime.image import MIMEImage
+from email.mime.audio import MIMEAudio
+from email.encoders import encode_base64
+import base64
+import mimetypes
 
 
 def create_message(sender, to, subject, message_text):
@@ -37,7 +45,7 @@ def create_message(sender, to, subject, message_text):
   message['to'] = to
   message['from'] = sender
   message['subject'] = subject
-  return {'raw': base64.urlsafe_b64encode(message.as_string())}
+  return {'raw': base64.urlsafe_b64encode(message.as_string().encode()).decode()}
 
 
 def create_message_with_attachment(
@@ -68,7 +76,7 @@ def create_message_with_attachment(
     content_type = 'application/octet-stream'
   main_type, sub_type = content_type.split('/', 1)
   if main_type == 'text':
-    fp = open(file, 'rb')
+    fp = open(file, 'r')
     msg = MIMEText(fp.read(), _subtype=sub_type)
     fp.close()
   elif main_type == 'image':
@@ -83,12 +91,14 @@ def create_message_with_attachment(
     fp = open(file, 'rb')
     msg = MIMEBase(main_type, sub_type)
     msg.set_payload(fp.read())
+    encode_base64(msg)
     fp.close()
+
   filename = os.path.basename(file)
   msg.add_header('Content-Disposition', 'attachment', filename=filename)
   message.attach(msg)
 
-  return {'raw': base64.urlsafe_b64encode(message.as_string())}
+  return {'raw': base64.urlsafe_b64encode(message.as_string().encode()).decode()}
 
 def send_message(service, user_id, message):
   """Send an email message.
@@ -102,19 +112,15 @@ def send_message(service, user_id, message):
   Returns:
     Sent Message.
   """
-  try:
-    message = (service.users().messages().send(userId=user_id, body=message)
+  message = (service.users().messages().send(userId=user_id, body=message)
                .execute())
-    print 'Message Id: %s' % message['id']
-    return message
-  except errors.HttpError, error:
-    print 'An error occurred: %s' % error
+  print(f"Message Id: {message['id']}")
 
 
 # If modifying these scopes, delete the file token.json.
-SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
+SCOPES = ['https://www.googleapis.com/auth/gmail.send']
 
-def main():
+def make_googleapi_verification():
     """Shows basic usage of the Gmail API.
     Lists the user's Gmail labels.
     """
@@ -136,18 +142,15 @@ def main():
         with open('token.json', 'w') as token:
             token.write(creds.to_json())
 
-    service = build('gmail', 'v1', credentials=creds)
+    return build('gmail', 'v1', credentials=creds)
 
-    # Call the Gmail API
-    results = service.users().labels().list(userId='me').execute()
-    labels = results.get('labels', [])
+    message = create_message("ravitharan@gmail.com", "ravitharan@gmail.com", "TEST EMAIL", "test messages")
 
-    if not labels:
-        print('No labels found.')
-    else:
-        print('Labels:')
-        for label in labels:
-            print(label['name'])
+    send_message(service, "me", message)
+
+
+def main():
+    send_email("hanushat@gmail.com", "TEST EMAIL 1", "testing message", 'cabinet_input.xlsx')
 
 if __name__ == '__main__':
     main()
