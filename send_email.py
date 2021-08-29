@@ -27,9 +27,10 @@ from email.mime.audio import MIMEAudio
 from email.encoders import encode_base64
 import base64
 import mimetypes
+import argparse
 
 
-def create_message(sender, to, subject, message_text):
+def create_message(to, subject, message_text):
   """Create a message for an email.
 
   Args:
@@ -43,13 +44,12 @@ def create_message(sender, to, subject, message_text):
   """
   message = MIMEText(message_text)
   message['to'] = to
-  message['from'] = sender
+#  message['from'] = sender
   message['subject'] = subject
   return {'raw': base64.urlsafe_b64encode(message.as_string().encode()).decode()}
 
 
-def create_message_with_attachment(
-    sender, to, subject, message_text, file):
+def create_message_with_attachment(to, subject, message_text, file):
   """Create a message for an email.
 
   Args:
@@ -64,7 +64,7 @@ def create_message_with_attachment(
   """
   message = MIMEMultipart()
   message['to'] = to
-  message['from'] = sender
+#  message['from'] = sender
   message['subject'] = subject
 
   msg = MIMEText(message_text)
@@ -114,7 +114,7 @@ def send_message(service, user_id, message):
   """
   message = (service.users().messages().send(userId=user_id, body=message)
                .execute())
-  print(f"Message Id: {message['id']}")
+  print(f"email sent")
 
 
 # If modifying these scopes, delete the file token.json.
@@ -144,15 +144,30 @@ def make_googleapi_verification():
 
     return build('gmail', 'v1', credentials=creds)
 
-    message = create_message("ravitharan@gmail.com", "ravitharan@gmail.com", "TEST EMAIL", "test messages")
+
+def send_email(address, title, message, attachment=''):
+    service = make_googleapi_verification()
+    if attachment == '':
+        message = create_message(address, title, message)
+    else:
+        message = create_message_with_attachment(address, title, message, attachment)
 
     send_message(service, "me", message)
 
 
-def main():
-    send_email("hanushat@gmail.com", "TEST EMAIL 1", "testing message", 'cabinet_input.xlsx')
+def email_parse_argument():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-a", "--address", required=True, help="Receiver email address")
+    parser.add_argument("-t", "--title", required=True, help="Title of the email")
+    parser.add_argument("-m", "--message", required=True, help="Email message")
+    parser.add_argument("-f", "--attach", default='', help="Attachment file name")
+    return parser.parse_args()
+
+def email_main():
+    args = email_parse_argument()
+    send_email(args.address, args.title, args.message, args.attach)
 
 if __name__ == '__main__':
-    main()
+    email_main()
 # [END gmail_quickstart]
 
