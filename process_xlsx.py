@@ -5,7 +5,7 @@ CONFIG_FILE_NAME = ".config.json"
 
 # Get following parameters from GUI inputs.
 config_params = {
-    "receiver_email" : "ravitharan@gmail.com",
+    "receiver_email" : "user@email.com",
     "notification_days" : 5,
     "expiry_title" : "Valid till",
     "output_columns" : ["Name", "Access card no", "Vehicle no"],
@@ -31,7 +31,9 @@ def parse_xlsx_header(xlsx_file, cfg_params):
         "data_start_row": None,
         "columns": None,
     }
+    # First interested column is expiry date
     data_locations["columns"] = [None]
+    # Subsequent columns are requested bu user
     data_locations["columns"].extend([None for x in cfg_params["output_columns"]])
     num_locations = len(data_locations["columns"])
 
