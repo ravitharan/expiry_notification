@@ -2,16 +2,17 @@ import json
 import openpyxl
 
 CONFIG_FILE_NAME = ".config.json"
+OUTPUT_FILE_NAME = "Reminder.xlsx"
 
 # Get following parameters from GUI inputs.
-config_params = {
-    "receiver_email" : "user@email.com",
-    "notification_days" : 5,
+CONFIG_PARAMS = {
+    "email" : "user@email.com",
+    "reminder_days" : 5,
     "expiry_title" : "Valid till",
     "output_columns" : ["Name", "Access card no", "Vehicle no"],
 }
 
-def update_configfile(file_name, config_params):
+def update_configfile(config_params, file_name):
     with open(file_name, 'w') as fp:
         json.dump(config_params, fp)
 
@@ -26,6 +27,8 @@ def parse_xlsx_header(xlsx_file, cfg_params):
     columns. Also returning data start row number
 
     '''
+
+    error_msg = None
     data_locations = {
         "work_sheet" : None,
         "data_start_row": None,
@@ -57,7 +60,8 @@ def parse_xlsx_header(xlsx_file, cfg_params):
         if (num_locations == 0):
             break
 
-    return data_locations
+    #TODO: need to verify all columns and create error_msg, if any column not found
+    return (error_msg, data_locations)
 
 def get_xlsx_data(xlsx_locations):
     '''
@@ -80,13 +84,29 @@ def filter_data(xlsx_data, num_expiry_days):
     '''
     Filter xlsx_data within num_expiry_days. Sort the filtered data 
     '''
+    #TODO: this is not complete
 
 def write_xlsx_file(xlsx_data):
     '''
     Write filtered data into output xlsx file
     '''
+    #TODO: this is not complete
+    output_file = OUTPUT_FILE_NAME
+    workbook = openpyxl.Workbook()             # open a Workbook as named work book
+    workbook.save(output_file)   # save the file into current directory
+    return output_file
+
+def process_xlsx(input_xlsx, config):
+    (err_msg, locations) = parse_xlsx_header(input_xlsx, config)
+    if err_msg != None:
+        return err_msg
+    data = get_xlsx_data(locations)
+    filter_data(data, config["reminder_days"])
+    write_xlsx_file(xlsx_data)
+    return None
+
 if __name__ == '__main__':
-    locations = parse_xlsx_header('DMM Access cards details.xlsx', config_params)
+    (err_msg, locations) = parse_xlsx_header('DMM Access cards details.xlsx', CONFIG_PARAMS)
     data = get_xlsx_data(locations)
     for item in data:
         print(item)
