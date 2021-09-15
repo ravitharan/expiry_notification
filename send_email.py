@@ -114,7 +114,6 @@ def send_message(service, user_id, message):
   """
   message = (service.users().messages().send(userId=user_id, body=message)
                .execute())
-  print(f"email sent")
 
 
 # If modifying these scopes, delete the file token.json.

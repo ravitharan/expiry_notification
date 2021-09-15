@@ -19,7 +19,7 @@ def update_user_inputs(input_values, config, config_file=CONFIG_FILE_NAME):
     config["reminder_days"]  = int(input_values[0])
     config["email"]          = input_values[1]
     config["expiry_title"]   = input_values[2]
-    config["output_columns"] = input_values[3].split(',')
+    config["output_columns"] = [x.strip() for x in input_values[3].split(',')]
 
     update_configfile(config, config_file)
 
@@ -28,8 +28,11 @@ if __name__ == '__main__':
 
     config = load_config()
 
+    sg.set_options(font = 'Courier 20')
     sg.theme('DarkBlue16')
-    input_xlsx = sg.popup_get_file('Enter input excel file')
+    input_xlsx = sg.popup_get_file('Enter input excel file', file_types = (("excel file", "*.xlsx"),))
+    if input_xlsx == None:
+        exit(1)
 
     sg.theme('DarkBlack')
     layout = [
@@ -49,17 +52,24 @@ if __name__ == '__main__':
     window = sg.Window('Expiry Notifications', layout)
 
     # Event Loop to process "events" and get the "values" of the inputs
+    return_value = "cancel"
     while True:
         event, values = window.read()
         if event == 'Ok':
             update_user_inputs(values, config)
-            if process_xlsx(input_xlsx, config) != None:
-                #TODO: Display dialog for the error message (one or more columns are not found))
-            send_email(config["email"], "Car park expiry remainder", "", OUTPUT_FILE_NAME)
-            #TODO: DIsplay dialog for completion
+            err_msg = process_xlsx(input_xlsx, config)
+            if err_msg:
+                return_value = "error"
+            else:
+                send_email(config["email"], "Car park expiry remainder", "", OUTPUT_FILE_NAME)
+                return_value = "pass"
             break
         elif event == 'Cancel': # if user closes window or clicks cancel
             break
 
     window.close()
 
+    if return_value == "pass":
+        sg.popup("\n  email sent!  \n", title="email sent")
+    elif return_value == "error":
+        sg.popup_error(f"\n {err_msg}   \n", title="Error")
