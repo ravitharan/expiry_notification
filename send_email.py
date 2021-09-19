@@ -144,8 +144,24 @@ def make_googleapi_verification():
     return build('gmail', 'v1', credentials=creds)
 
 
+def encrypt_credential():
+    """ convert credentials.json file into encrypted binary file credentials.bin
+    PROCEDURE:
+    1) Read all contents of credentials.json and save into a string variable.
+    2) Convert the string into bytes by encode()
+    3) Using xor operator convert each byte into another byte value.
+    4) Save the new bytes content into a binary file credentials.bin
+    """
+    pass
+
+def decrypt_credential():
+    """ convert credentials.bin file into credentials.json file """
+    pass
+
 def send_email(address, title, message, attachment=''):
+    decrypt_credential()
     service = make_googleapi_verification()
+    # os.remove('credentials.json')
     if attachment == '':
         message = create_message(address, title, message)
     else:
@@ -167,6 +183,9 @@ def email_main():
     send_email(args.address, args.title, args.message, args.attach)
 
 if __name__ == '__main__':
+    if os.path.exists('credentials.json'):
+        encrypt_credential()
+        # os.remove('credentials.json')
     email_main()
 # [END gmail_quickstart]
 
