@@ -22,11 +22,12 @@ def update_user_inputs(input_values, config, config_file=CONFIG_FILE_NAME):
     config["expiry_title"]      = input_values[3]
     config["output_columns"]    = [x.strip() for x in input_values[4].split(',')]
 
-    update_configfile(config, config_file)
     return input_xlsx
 
 
 if __name__ == '__main__':
+
+    config_file = CONFIG_FILE_NAME
 
     config = load_config()
 
@@ -60,6 +61,7 @@ if __name__ == '__main__':
             if err_msg:
                 return_value = "error"
             else:
+                update_configfile(config, config_file)
                 send_email(config["email"], "Car park expiry remainder", "", OUTPUT_FILE_NAME)
                 return_value = "pass"
             break
