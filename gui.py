@@ -16,12 +16,14 @@ def update_user_inputs(input_values, config, config_file=CONFIG_FILE_NAME):
 
     '''
     #TODO: need to validate input values
-    config["reminder_days"]  = int(input_values[0])
-    config["email"]          = input_values[1]
-    config["expiry_title"]   = input_values[2]
-    config["output_columns"] = [x.strip() for x in input_values[3].split(',')]
+    input_xlsx                  = input_values[0]
+    config["reminder_days"]     = int(input_values[1])
+    config["email"]             = input_values[2]
+    config["expiry_title"]      = input_values[3]
+    config["output_columns"]    = [x.strip() for x in input_values[4].split(',')]
 
     update_configfile(config, config_file)
+    return input_xlsx
 
 
 if __name__ == '__main__':
@@ -29,14 +31,11 @@ if __name__ == '__main__':
     config = load_config()
 
     sg.set_options(font = 'Courier 20')
-    sg.theme('DarkBlue16')
-    input_xlsx = sg.popup_get_file('Enter input excel file', file_types = (("excel file", "*.xlsx"),))
-    if input_xlsx == None:
-        exit(1)
 
-    sg.theme('DarkBlack')
+    sg.theme('DarkBlue16')
     layout = [
-        [sg.Text(f'File: "{os.path.basename(input_xlsx)}"')],
+        [sg.Text('Select input excel File: ', size=(35,2)),
+            sg.InputText(), sg.FileBrowse(file_types = (("excel file", "*.xlsx"),))],
         [sg.Text('Reminder days:', size=(35,2)),
             sg.InputText(config["reminder_days"])],
         [sg.Text('Email address:', size=(35,2)),
@@ -49,14 +48,14 @@ if __name__ == '__main__':
     ]
 
     # Create the Window
-    window = sg.Window('Expiry Notifications', layout)
+    window = sg.Window('Expiry Notifications v1.0', layout)
 
     # Event Loop to process "events" and get the "values" of the inputs
     return_value = "cancel"
     while True:
         event, values = window.read()
         if event == 'Ok':
-            update_user_inputs(values, config)
+            input_xlsx = update_user_inputs(values, config)
             err_msg = process_xlsx(input_xlsx, config)
             if err_msg:
                 return_value = "error"
