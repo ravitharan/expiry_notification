@@ -63,7 +63,7 @@ if __name__ == '__main__':
                 send_email(config["email"], "Car park expiry remainder", "", OUTPUT_FILE_NAME)
                 return_value = "pass"
             break
-        elif event == 'Cancel': # if user closes window or clicks cancel
+        elif event == 'Cancel' or event == sg.WIN_CLOSED: # if user closes window or clicks cancel
             break
 
     window.close()
