@@ -1,5 +1,6 @@
 import json
 import openpyxl
+import sys
 from datetime import datetime
 
 CONFIG_FILE_NAME = ".config.json"
@@ -128,6 +129,10 @@ def process_xlsx(input_xlsx, config):
     return None
 
 if __name__ == '__main__':
-    err_msg = process_xlsx('DMM Access cards details.xlsx', CONFIG_PARAMS)
+
+    if (len(sys.argv) != 2):
+        print(f'Argument error\n Usage: {sys.argv[0]} <input_excel_file>')
+        exit(1)
+    err_msg = process_xlsx(sys.argv[1], CONFIG_PARAMS)
     if err_msg != None:
         print(err_msg)
